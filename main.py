@@ -1,3 +1,12 @@
+import os
+
+print("📂 Aktuelles Verzeichnis:", os.getcwd())
+print("📄 Dateien im aktuellen Ordner:", os.listdir("."))
+
+if os.path.exists("yt_session.session"):
+    print("✅ Session-Datei gefunden!")
+else:
+    print("❌ Session-Datei NICHT gefunden!")
 from telethon import TelegramClient, events
 import re
 import os
