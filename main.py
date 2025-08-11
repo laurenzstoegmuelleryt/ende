@@ -1,58 +1,32 @@
+rom telethon import TelegramClient
 import os
-
-print("📂 Aktuelles Verzeichnis:", os.getcwd())
-print("📄 Dateien im aktuellen Ordner:", os.listdir("."))
-
-if os.path.exists("yt_session.session"):
-    print("✅ Session-Datei gefunden!")
-else:
-    print("❌ Session-Datei NICHT gefunden!")
-from telethon import TelegramClient, events
-import re
-import os
-import requests
-import sys
 import asyncio
 
-# Umgebungsvariablen von Render
-API_ID = int(os.environ["API_ID"])
-API_HASH = os.environ["API_HASH"]
-SESSION_NAME = os.environ.get("SESSION_NAME", "yt_session")
-CHANNEL_USERNAME = os.environ["CHANNEL_USERNAME"]
-MAKE_WEBHOOK_URL = os.environ["MAKE_WEBHOOK_URL"]
+# === Pfad zur Session-Datei ermitteln ===
+BASE_DIR = os.path.dirname(os.path.abspath(_file_))
+session_path = os.path.join(BASE_DIR, "yt_session.session")
 
-# Client erstellen
-client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
+# === Deine Telegram API-Daten ===
+api_id = 26887058       # <-- Deine API_ID hier eintragen
+api_hash = "8f3e45ebdde3dc58cc4de8a405477c47"   # <-- Deinen API_HASH hier eintragen
 
-# Regex für YouTube-Links
-yt_pattern = re.compile(
-    r"(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w\-]+)"
-)
+# === Client mit absolutem Pfad erstellen ===
+client = TelegramClient(session_path, api_id, api_hash)
 
-@client.on(events.NewMessage(chats=CHANNEL_USERNAME))
-async def handler(event):
-    text = event.raw_text
-    yt_links = yt_pattern.findall(text)
-    if yt_links:
-        payload = {"links": yt_links, "message": text}
-        requests.post(MAKE_WEBHOOK_URL, json=payload)
-        print(f"🚀 YT-Links gesendet: {yt_links}")
 
 async def main():
-    print("🚀 Bot startet...")
+    # Verbindung starten (nutzt bestehende Session falls vorhanden)
+    await client.start()
+    print(f"✅ Session erfolgreich geladen: {session_path}")
 
-    running_on_render = os.environ.get("RENDER") is not None
+    # Beispiel: Eigene User-Infos abrufen
+    me = await client.get_me()
+    print(f"👤 Eingeloggt als: {me.first_name} (ID: {me.id})")
 
-    if running_on_render:
-        await client.connect()
-        if not await client.is_user_authorized():
-            print("❌ Keine gültige Session-Datei gefunden! Bitte lokal einloggen und neu deployen.")
-            sys.exit(1)
-    else:
-        # Lokal interaktiv einloggen
-        await client.start()
+    # Hier kannst du deine weitere Logik einfügen
+    # await client.send_message("me", "Hallo von Render! 🚀")
 
-    await client.run_until_disconnected()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if _name_ == "_main_":
+    with client:
+        client.loop.run_until_complete(main())
